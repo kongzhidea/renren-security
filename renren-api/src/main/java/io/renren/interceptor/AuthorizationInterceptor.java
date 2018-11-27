@@ -1,9 +1,26 @@
+/**
+ * Copyright 2018 人人开源 http://www.renren.io
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package io.renren.interceptor;
 
-import io.renren.annotation.IgnoreAuth;
+
+import io.renren.annotation.Login;
+import io.renren.common.exception.RRException;
 import io.renren.entity.TokenEntity;
 import io.renren.service.TokenService;
-import io.renren.utils.RRException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,19 +41,18 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter {
     @Autowired
     private TokenService tokenService;
 
-    public static final String LOGIN_USER_KEY = "LOGIN_USER_KEY";
+    public static final String USER_KEY = "userId";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        IgnoreAuth annotation;
+        Login annotation;
         if(handler instanceof HandlerMethod) {
-            annotation = ((HandlerMethod) handler).getMethodAnnotation(IgnoreAuth.class);
+            annotation = ((HandlerMethod) handler).getMethodAnnotation(Login.class);
         }else{
             return true;
         }
 
-        //如果有@IgnoreAuth注解，则不验证token
-        if(annotation != null){
+        if(annotation == null){
             return true;
         }
 
@@ -59,7 +75,7 @@ public class AuthorizationInterceptor extends HandlerInterceptorAdapter {
         }
 
         //设置userId到request里，后续根据userId，获取用户信息
-        request.setAttribute(LOGIN_USER_KEY, tokenEntity.getUserId());
+        request.setAttribute(USER_KEY, tokenEntity.getUserId());
 
         return true;
     }
